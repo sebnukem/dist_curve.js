@@ -31,39 +31,68 @@ function l2c(point) {
 function sort_points(points) {
 
 }
+function is_over_point(point) {
+	return _.find(points, function(p) {
+		return Math.sqrt(Math.pow(point.x-p.x,2)+Math.pow(point.y-p.y,2)) < 12;
+	});
+}
+function mouse_move(event) {
+	var point = c2l(canvasxy(event));
+	pr('mouse @ '+point.x+','+point.y);
+}
 function mouse_down(event) {
 	var point = c2l(canvasxy(event));
 	pr('mouse down @ '+point.x+','+point.y);
-	points.push(point);
-	points.sort(function(a,b){ return b.x - a.x; });
+	if (is_over_point(point)) {
+		pr('mouse down over @ '+point.x+','+point.y);
+		points = _.remove(points, function(p){ return p.x != point.x; });
+	} else {
+		points.push(point);
+		points.sort(function(a,b){ return a.x - b.x; });
+	}
 	draw_curve(points);
+}
+function draw_point(p, lp) {
+//	ctx.save();
+	ctx.beginPath();
+	ctx.arc(p.x, p.y, 6, 0, 2*Math.PI, true);
+	ctx.fill();
+	ctx.beginPath();
+	ctx.font = "10px sans-serif";
+	ctx.fillStyle = "#666";
+	ctx.fillText(lp.x+','+lp.y, p.x+(lp.x>90?-42:8), p.y+(lp.y<10?-8:12));
+	ctx.moveTo(p.x,p.y);
+//	ctx.restore();
 }
 function draw_curve(points) {
 	var pp;
 	ctx.clearRect(0,0,wc,hc);
 	ctx.lineWidth = 3;
 	ctx.lineCap = 'round';
+	ctx.save();
 	ctx.beginPath();
 	_.forEach(points, function(point) {
 		var p = l2c(point);
 		if (!pp) {
-			ctx.moveTo(p.x,p.y);
-		} else if (p.x == pp.x) {
-			ctx.moveTo(p.x,p.y);
+			ctx.stroke();
+			draw_point(p, point);
+		} else if (point.x == pp.x) {
+			ctx.stroke();
+			draw_point(p, point);
 		} else {
 			ctx.lineTo(p.x,p.y);
-			//log('lineto '+p.x+','+p.y);
+			ctx.stroke();
+			draw_point(p, point);
 		}
-		pp = p;
+		pp = point;
 	});
 	ctx.stroke();
 }
 function init() {
 	canvas = document.getElementById('canvas');
 	ctx = canvas.getContext("2d");
+	canvas.addEventListener("mousemove", mouse_move, false);
 	canvas.addEventListener("mousedown", mouse_down, false);
-
-   
 
 	draw_curve(points);
 }
