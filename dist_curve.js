@@ -3,8 +3,7 @@ var DISTCURV = (function($, _, undefined){
 var canvas, ctx;
 var wc = 500, hc = 500;
 var wl = 100, hl = 100;
-var pointer;
-
+var pointer; // canvas coords mouse pointer
 var points = [ {x:0,y:0}, {x:100,y:100} ];
 var livepoints;
 
@@ -109,12 +108,12 @@ function draw_curve() {
 	// curve
 	first = true;
 	_.forEach(points, function(point) {
-		var p = l2c(point);
+		var coords = l2c(point);
 		if (first) {
-			ctx.moveTo(p.x,p.y);
+			ctx.moveTo(coords.x,coords.y);
 			first = false;
 		} else {
-			ctx.lineTo(p.x,p.y);
+			ctx.lineTo(coords.x,coords.y);
 		}
 	});
 	ctx.stroke();
@@ -126,12 +125,12 @@ function draw_curve() {
 		ctx.strokeStyle = "#44c";
 		first = true;
 		_.forEach(livepoints, function(point) {
-			var p = l2c(point);
+			var coords = l2c(point);
 			if (first) {
-				ctx.moveTo(p.x,p.y);
+				ctx.moveTo(coords.x,coords.y);
 				first = false;
 			} else {
-				ctx.lineTo(p.x,p.y);
+				ctx.lineTo(coords.x,coords.y);
 			}
 		});
 		ctx.stroke();
