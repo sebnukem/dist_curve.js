@@ -3,6 +3,7 @@ var DISTCURV = (function($, undefined){
 var canvas, ctx;
 var wc = 500, hc = 500;
 var wl = 100, hl = 100;
+var pointer;
 
 var points = [ {x:0,y:0}, {x:100,y:100} ];
 
@@ -37,8 +38,12 @@ function is_over_point(point) {
 	});
 }
 function mouse_move(event) {
-	var point = c2l(canvasxy(event));
+	pointer = canvasxy(event);
+	var point = c2l(pointer);
 	pr('mouse @ '+point.x+','+point.y);
+}
+function mouse_out(event) {
+	pointer = null;
 }
 function mouse_down(event) {
 	var point = c2l(canvasxy(event));
@@ -50,51 +55,68 @@ function mouse_down(event) {
 		points.push(point);
 		points.sort(function(a,b){ return a.x - b.x; });
 	}
-	draw_curve(points);
+}
+function draw_pointer() {
+	var lp, ax, ay;
+	if (!pointer) return;
+	lp = c2l(pointer);
+	ax = lp.x>90?-40:16; ay = lp.y<8?-20:12;
+	ctx.save();
+	ctx.font = "10px sans-serif";
+	ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+    ctx.fillRect (pointer.x+ax-4, pointer.y+ay-12, 38, 30);
+    ctx.fillStyle = "#000000";
+	ctx.fillText('x: '+lp.x, pointer.x+ax, pointer.y+ay);
+	ctx.fillText('y: '+lp.y, pointer.x+ax, pointer.y+ay+14);
+	ctx.restore();
 }
 function draw_point(p, lp) {
-//	ctx.save();
+	ctx.save();
 	ctx.beginPath();
+	ctx.fillStyle = "#c86";
 	ctx.arc(p.x, p.y, 6, 0, 2*Math.PI, true);
 	ctx.fill();
-	ctx.beginPath();
 	ctx.font = "10px sans-serif";
-	ctx.fillStyle = "#666";
-	ctx.fillText(lp.x+','+lp.y, p.x+(lp.x>90?-42:8), p.y+(lp.y<10?-8:12));
-	ctx.moveTo(p.x,p.y);
-//	ctx.restore();
+	ctx.fillText(lp.x+','+lp.y, p.x+(lp.x>90?-42:6), p.y+(lp.y<10?-6:12));
+	ctx.restore();
 }
-function draw_curve(points) {
-	var pp;
+function draw_curve() {
+	var first = true;
 	ctx.clearRect(0,0,wc,hc);
 	ctx.lineWidth = 3;
 	ctx.lineCap = 'round';
 	ctx.save();
 	ctx.beginPath();
+
+	// curve
 	_.forEach(points, function(point) {
 		var p = l2c(point);
-		if (!pp) {
-			ctx.stroke();
-			draw_point(p, point);
-		} else if (point.x == pp.x) {
-			ctx.stroke();
-			draw_point(p, point);
+		if (first) {
+			ctx.moveTo(p.x,p.y);
+			first = false;
 		} else {
 			ctx.lineTo(p.x,p.y);
-			ctx.stroke();
-			draw_point(p, point);
 		}
 		pp = point;
 	});
 	ctx.stroke();
+	_.forEach(points, function(point) {
+		var p = l2c(point);
+		draw_point(p, point);
+	});
+	// pointer
+	draw_pointer();
+
+	window.requestAnimationFrame(draw_curve);
 }
 function init() {
 	canvas = document.getElementById('canvas');
 	ctx = canvas.getContext("2d");
 	canvas.addEventListener("mousemove", mouse_move, false);
+	canvas.addEventListener("mouseout",  mouse_out,  false);
 	canvas.addEventListener("mousedown", mouse_down, false);
 
-	draw_curve(points);
+	window.requestAnimationFrame(draw_curve);
 }
 return {
 	log: log,
