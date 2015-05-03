@@ -37,7 +37,7 @@ function sort_points(points) {
 }
 function is_over_point(point) {
 	return _.findIndex(points, function(p) {
-		return Math.sqrt(Math.pow(point.x-p.x,2)+Math.pow(point.y-p.y,2)) < 12;
+		return Math.sqrt(Math.pow(point.x-p.x,2)+Math.pow(point.y-p.y,2)) < 5;
 	});
 }
 function mouse_move(event) {
@@ -48,19 +48,20 @@ function mouse_move(event) {
 	tmpts.push(point);
 	tmpts.sort(function(a,b){ return a.x - b.x; });
 	var pi = _.findIndex(tmpts, point);
-	if (pi == -1) {
-		livepoints = null;
-		return;
+	livepoints = null;
+	if (pi >= 0) {
+		var fromp = pi > 0 ? tmpts[pi -1] : null;
+		var top = pi < tmpts.length - 1 ? tmpts[pi + 1] : null;
+		livepoints = [ point ];
+		if (fromp) livepoints.unshift(fromp);
+		if (top) livepoints.push(top);
 	}
-	var fromp = pi > 0 ? tmpts[pi -1] : null;
-	var top = pi < tmpts.length - 1 ? tmpts[pi + 1] : null;
-	livepoints = [ point ];
-	if (fromp) livepoints.unshift(fromp);
-	if (top) livepoints.push(top);
+	window.requestAnimationFrame(draw_curve);
 }
 function mouse_out(event) {
 	pointer = null;
 	livepoints = null;
+	window.requestAnimationFrame(draw_curve);
 }
 function mouse_down(event) {
 	var point = c2l(canvasxy(event));
@@ -74,6 +75,7 @@ function mouse_down(event) {
 		points.sort(function(a,b){ return a.x - b.x; });
 	}
 	livepoints = null;
+	window.requestAnimationFrame(draw_curve);
 }
 function draw_pointer() {
 	var lp, ax, ay;
@@ -144,7 +146,11 @@ function draw_curve() {
 
 	// pointer
 	draw_pointer();
-
+}
+function reset() {
+	points = [ {x:0,y:0}, {x:100,y:100} ];
+	pointer = null;
+	livepoints = null;
 	window.requestAnimationFrame(draw_curve);
 }
 function init() {
@@ -163,16 +169,17 @@ function init() {
 	ctx.strokeStyle = "#000";
 	ctx.font = "10px sans-serif";
 	ctx.save();
-
 	window.requestAnimationFrame(draw_curve);
 }
 return {
 	log: log,
-	init: init
+	init: init,
+	reset: reset
 }
 })(jQuery, _);
 
 $(document).ready(function() {
 	DISTCURV.log('jquery loaded.');
+	$('#reset').on('click', DISTCURV.reset);
 	DISTCURV.init();
 });
