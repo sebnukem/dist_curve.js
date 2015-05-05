@@ -123,22 +123,37 @@ function draw_point(lp, paint_coords) {
 	ctx.restore();
 }
 function draw_curve() {
-	var first;
+	var first, pp;
 	ctx.clearRect(0,0,wc,hc);
-	ctx.beginPath();
 
 	// curve
-	first = true;
 	_.forEach(points, function(point) {
-		var coords = l2c(point);
-		if (first) {
-			ctx.moveTo(coords.x,coords.y);
-			first = false;
-		} else {
-			ctx.lineTo(coords.x,coords.y);
+		var coords, pcoords;
+		if (!pp) {
+			pp = point;
+			return;
 		}
+		coords = l2c(point);
+		pcoords = l2c(pp);
+		if (pp.x === point.x) {
+			ctx.save();
+			ctx.beginPath();
+			ctx.strokeStyle = "#fafafa";
+			ctx.shadowOffsetX = 0;
+			ctx.shadowOffsetY = 0;
+			ctx.shadowBlur = 0;
+			ctx.moveTo(pcoords.x, pcoords.y);
+			ctx.lineTo(coords.x,coords.y);
+			ctx.stroke();
+			ctx.restore();
+		} else {
+			ctx.beginPath();
+			ctx.moveTo(pcoords.x, pcoords.y);
+			ctx.lineTo(coords.x,coords.y);
+			ctx.stroke();
+		}
+		pp = point;
 	});
-	ctx.stroke();
 
 	// live curve
 	if (livepoints) {
