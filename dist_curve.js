@@ -5,7 +5,7 @@ var wc = 500, hc = 500;
 var wl = 100, hl = 100;
 var pointer; // canvas coords mouse pointer
 var points = [ {x:0,y:0}, {x:100,y:100} ];
-var livepoints;
+var livepoints, livepoint;
 
 function log(o) { $('#d').append(''+o+'<br>'); }
 function pr(o) { $('#o').html(''+o); }
@@ -31,8 +31,21 @@ function l2c(point) {
 		y: hc - point.y * hc / hl
 	}
 }
+function add_point(points, point) {
+	if (!point) return points;
+	points.push(point);
+	sort_points(points);
+	return trim_points(points);
+}
+function trim_points(points) {
+	var i, l = points.length;
+	for (i = l-2; i>0; i--) {
+		if (points[i-1].x === points[i].x && points[i].x === points[i+1].x) points.splice(i,1);
+		else if (points[i-1].y === points[i].y && points[i].y === points[i+1].y) points.splice(i,1);
+	}	
+}
 function sort_points(points) {
-
+	return points.sort(function(a,b){ if (a.x - b.x) return a.x - b.x; else return a.y - b.y; });
 }
 function is_over_point(point) {
 	return _.findIndex(points, function(p) {
@@ -44,16 +57,26 @@ function mouse_move(event) {
 	var point = c2l(pointer);
 	pr('mouse @ '+point.x+','+point.y);
 	var tmpts = _.clone(points);
-	tmpts.push(point);
-	tmpts.sort(function(a,b){ return a.x - b.x; });
+	add_point(tmpts, point);
 	var pi = _.findIndex(tmpts, point);
 	livepoints = null;
 	if (pi >= 0) {
 		var fromp = pi > 0 ? tmpts[pi -1] : null;
 		var top = pi < tmpts.length - 1 ? tmpts[pi + 1] : null;
 		livepoints = [ point ];
-		if (fromp) livepoints.unshift(fromp);
-		if (top) livepoints.push(top);
+		livepoint = point;
+		if (fromp) {
+			livepoints.unshift(fromp);
+			if (point.y < fromp.y) point.y = fromp.y;
+			if (Math.abs(fromp.x - point.x) < 5) point.x = fromp.x;
+			if (Math.abs(fromp.y - point.y) < 5) point.y = fromp.y;
+		}
+		if (top) {
+			livepoints.push(top);
+			if (Math.abs(top.x - point.x) < 5) point.x = top.x;
+			if (Math.abs(top.y - point.y) < 5) point.y = top.y;
+			if (point.y > top.y) point.y = top.y;
+		}
 	}
 	window.requestAnimationFrame(draw_curve);
 }
@@ -63,15 +86,14 @@ function mouse_out(event) {
 	window.requestAnimationFrame(draw_curve);
 }
 function mouse_down(event) {
-	var point = c2l(canvasxy(event));
+	var point = livepoint ? livepoint : c2l(canvasxy(event));
 	pr('mouse down @ '+point.x+','+point.y);
 	var overi = is_over_point(point);
 	if (overi != -1 ) {
 //		pr('mouse down over @ '+point.x+','+point.y);
 		points.splice(overi,1);
 	} else {
-		points.push(point);
-		points.sort(function(a,b){ return a.x - b.x; });
+		add_point(points, point);
 	}
 	livepoints = null;
 	window.requestAnimationFrame(draw_curve);
@@ -89,7 +111,7 @@ function draw_pointer() {
 	ctx.fillText('y: '+lp.y, pointer.x+ax, pointer.y+ay+14);
 	ctx.restore();
 }
-function draw_point(lp) {
+function draw_point(lp, paint_coords) {
 	if (!lp) return;
 	var p = l2c(lp);
 	ctx.save();
@@ -97,7 +119,7 @@ function draw_point(lp) {
 	ctx.fillStyle = "#c86";
 	ctx.arc(p.x, p.y, 6, 0, 2*Math.PI, true);
 	ctx.fill();
-	ctx.fillText(lp.x+','+lp.y, p.x+(lp.x>90?-42:6), p.y+(lp.y<10?-6:12));
+	if (paint_coords !== false) ctx.fillText(lp.x+','+lp.y, p.x+(lp.x>90?-42:6), p.y+(lp.y<10?-6:12));
 	ctx.restore();
 }
 function draw_curve() {
@@ -134,7 +156,7 @@ function draw_curve() {
 			}
 		});
 		ctx.stroke();
-		draw_point(c2l(pointer));
+		draw_point(livepoint, false);
 		ctx.restore();
 	}
 
