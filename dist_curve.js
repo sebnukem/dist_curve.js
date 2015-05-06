@@ -4,10 +4,9 @@ var canvasbg, ctxbg, canvas, ctx;
 var wbg = 500, hbg = 500; // css #canvasbg width, height
 var fgleft = 80, fgtop = 20; // css #canvas left, top
 var wc = 400, hc = 400; // css #canvas width, height
-var wl = 100, hl = 100;
-var pointer; // canvas coords mouse pointer
+var wl = 100, hl = 100; // logical size
 var points = [ {x:0,y:0}, {x:100,y:100} ];
-var livepoints, livepoint;
+var livepoints, livepoint, pointer; // mouse hover points and pointer
 
 function log(o) { $('#d').append(''+o+'<br>'); }
 function pr(o) { $('#o').html(''+o); }
@@ -120,9 +119,12 @@ function draw_point(lp, paint_coords) {
 	ctx.save();
 	ctx.beginPath();
 	ctx.fillStyle = hover ? '#68a' : '000';
-	ctx.arc(p.x, p.y, hover ? 5 : 2, 0, 2*Math.PI, true);
+	ctx.arc(p.x, p.y, hover ? 5 : 3, 0, 2*Math.PI, true);
 	ctx.fill();
-	if (paint_coords !== false) ctx.fillText(lp.x+','+lp.y, p.x+(lp.x>90?-42:6), p.y+(lp.y<10?-6:12));
+	if (paint_coords !== false) {
+		ctx.fillStyle = '#68a';
+		ctx.fillText(lp.x+','+lp.y, p.x+(lp.x>90?-42:6), p.y+(lp.y<10?-6:12));
+	}
 	ctx.restore();
 }
 function draw_curve() {
@@ -264,11 +266,6 @@ function init() {
 
 	canvas = document.getElementById('canvas');
 	ctx = canvas.getContext("2d");
-
-	canvas.addEventListener("mousemove", mouse_move, false);
-	canvas.addEventListener("mouseout",  mouse_out,  false);
-	canvas.addEventListener("mousedown", mouse_down, false);
-
 	ctx.shadowOffsetX = 1;
 	ctx.shadowOffsetY = 1;
 	ctx.shadowBlur = 2;
@@ -278,6 +275,11 @@ function init() {
 	ctx.strokeStyle = "#000";
 	ctx.font = "10px sans-serif";
 	ctx.save();
+
+	canvas.addEventListener("mousemove", mouse_move, false);
+	canvas.addEventListener("mouseout",  mouse_out,  false);
+	canvas.addEventListener("mousedown", mouse_down, false);
+
 	window.requestAnimationFrame(draw_curve);
 }
 return {
