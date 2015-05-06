@@ -102,24 +102,25 @@ function mouse_down(event) {
 }
 function draw_pointer() {
 	var lp, ax, ay;
-	if (!pointer) return;
+	if (!pointer || !livepoint) return;
 	lp = c2l(pointer);
 	ax = lp.x>90?-40:16; ay = lp.y<8?-20:12;
 	ctx.save();
 	ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
     ctx.fillRect (pointer.x+ax-4, pointer.y+ay-12, 38, 30);
     ctx.fillStyle = "#000000";
-	ctx.fillText('x: '+lp.x, pointer.x+ax, pointer.y+ay);
-	ctx.fillText('y: '+lp.y, pointer.x+ax, pointer.y+ay+14);
+	ctx.fillText('x: '+livepoint.x, pointer.x+ax, pointer.y+ay);
+	ctx.fillText('y: '+livepoint.y, pointer.x+ax, pointer.y+ay+14);
 	ctx.restore();
 }
 function draw_point(lp, paint_coords) {
 	if (!lp) return;
+	var hover = !!pointer;
 	var p = l2c(lp);
 	ctx.save();
 	ctx.beginPath();
-	ctx.fillStyle = "#c86";
-	ctx.arc(p.x, p.y, 6, 0, 2*Math.PI, true);
+	ctx.fillStyle = hover ? '#68a' : '000';
+	ctx.arc(p.x, p.y, hover ? 5 : 2, 0, 2*Math.PI, true);
 	ctx.fill();
 	if (paint_coords !== false) ctx.fillText(lp.x+','+lp.y, p.x+(lp.x>90?-42:6), p.y+(lp.y<10?-6:12));
 	ctx.restore();
@@ -178,9 +179,7 @@ function draw_curve() {
 	}
 
 	// points
-	_.forEach(points, function(point) {
-		draw_point(point);
-	});
+	_.forEach(points, function(point) { draw_point(point, true); });
 
 	// pointer
 	draw_pointer();
