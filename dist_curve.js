@@ -191,6 +191,7 @@ function draw_grid() {
 	var y2b = function(y) { return hc + fgtop - y * hc / hl; }
 	ctxbg.lineWidth = 1;
 	ctxbg.strokeStyle = '#444';
+	ctxbg.font = "11px sans-serif";
 	ctxbg.save();
 
 	// x axis
@@ -198,17 +199,20 @@ function draw_grid() {
 	ctxbg.moveTo(x2b(0), y2b(0)+1);
 	ctxbg.lineTo(x2b(100), y2b(0)+1);
 	ctxbg.stroke();
+	// label
+	ctxbg.font = "15px sans-serif";
+	ctxbg.fillText('score', x2b(40), y2b(0)+40);
+	// ticks
+	ctxbg.font = "11px sans-serif";
 	for (i = 0; i <= 100; i += 10) {
 		ctxbg.beginPath();
 		ctxbg.moveTo(x2b(i), y2b(0)+1);
 		ctxbg.lineTo(x2b(i), y2b(0)+5);
 		ctxbg.stroke();
-
-		ctxbg.fillText(''+i, x2b(i)-4, y2b(0)+16);
-
+		ctxbg.fillText(''+i, x2b(i)-6, y2b(0)+16);
 		if (i) {
 			ctxbg.save();
-			ctxbg.strokeStyle = '#ccc';
+			ctxbg.strokeStyle = '#ddd';
 			ctxbg.setLineDash([2,2])
 			ctxbg.moveTo(x2b(i), y2b(0));
 			ctxbg.lineTo(x2b(i), y2b(100));
@@ -221,7 +225,32 @@ function draw_grid() {
 	ctxbg.moveTo(x2b(0)-1, y2b(0));
 	ctxbg.lineTo(x2b(0)-1, y2b(100));
 	ctxbg.stroke();
-
+	// label
+	ctxbg.save();
+	ctxbg.font = "16px sans-serif";
+	ctxbg.translate(30, hc/2+40);
+	ctxbg.rotate(-Math.PI/2);
+	ctxbg.textAlign = "center";
+	ctxbg.fillText("funding", 0, 0);
+	ctxbg.restore();
+	// ticks
+	ctxbg.font = "11px sans-serif";
+	for (i = 0; i <= 100; i += 10) {
+		ctxbg.beginPath();
+		ctxbg.moveTo(x2b(0)-1, y2b(i));
+		ctxbg.lineTo(x2b(0)-5, y2b(i));
+		ctxbg.stroke();
+		ctxbg.fillText(''+i+'%', x2b(0)-36, y2b(i)+4);
+		if (i) {
+			ctxbg.save();
+			ctxbg.strokeStyle = '#ddd';
+			ctxbg.setLineDash([2,2])
+			ctxbg.moveTo(x2b(0), y2b(i));
+			ctxbg.lineTo(x2b(100), y2b(i));
+			ctxbg.stroke();
+			ctxbg.restore();
+		}
+	}
 }
 function reset() {
 	points = [ {x:0,y:0}, {x:100,y:100} ];
