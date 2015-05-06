@@ -1,7 +1,9 @@
 var DISTCURV = (function($, _, undefined){
 
-var canvas, ctx;
-var wc = 500, hc = 500;
+var canvasbg, ctxbg, canvas, ctx;
+var wbg = 500, hbg = 500; // css #canvasbg width, height
+var fgleft = 80, fgtop = 20; // css #canvas left, top
+var wc = 400, hc = 400; // css #canvas width, height
 var wl = 100, hl = 100;
 var pointer; // canvas coords mouse pointer
 var points = [ {x:0,y:0}, {x:100,y:100} ];
@@ -183,6 +185,44 @@ function draw_curve() {
 	// pointer
 	draw_pointer();
 }
+function draw_grid() {
+	var i;
+	var x2b = function(x) { return x * wc / wl + fgleft; }
+	var y2b = function(y) { return hc + fgtop - y * hc / hl; }
+	ctxbg.lineWidth = 1;
+	ctxbg.strokeStyle = '#444';
+	ctxbg.save();
+
+	// x axis
+	ctxbg.beginPath();
+	ctxbg.moveTo(x2b(0), y2b(0)+1);
+	ctxbg.lineTo(x2b(100), y2b(0)+1);
+	ctxbg.stroke();
+	for (i = 0; i <= 100; i += 10) {
+		ctxbg.beginPath();
+		ctxbg.moveTo(x2b(i), y2b(0)+1);
+		ctxbg.lineTo(x2b(i), y2b(0)+5);
+		ctxbg.stroke();
+
+		ctxbg.fillText(''+i, x2b(i)-4, y2b(0)+16);
+
+		if (i) {
+			ctxbg.save();
+			ctxbg.strokeStyle = '#ccc';
+			ctxbg.setLineDash([2,2])
+			ctxbg.moveTo(x2b(i), y2b(0));
+			ctxbg.lineTo(x2b(i), y2b(100));
+			ctxbg.stroke();
+			ctxbg.restore();
+		}
+	}
+	// y axis
+	ctxbg.beginPath();
+	ctxbg.moveTo(x2b(0)-1, y2b(0));
+	ctxbg.lineTo(x2b(0)-1, y2b(100));
+	ctxbg.stroke();
+
+}
 function reset() {
 	points = [ {x:0,y:0}, {x:100,y:100} ];
 	pointer = null;
@@ -190,12 +230,17 @@ function reset() {
 	window.requestAnimationFrame(draw_curve);
 }
 function init() {
+	canvasbg = document.getElementById('canvasbg');
+	ctxbg = canvasbg.getContext("2d");
+	draw_grid();
+
 	canvas = document.getElementById('canvas');
+	ctx = canvas.getContext("2d");
+
 	canvas.addEventListener("mousemove", mouse_move, false);
 	canvas.addEventListener("mouseout",  mouse_out,  false);
 	canvas.addEventListener("mousedown", mouse_down, false);
 
-	ctx = canvas.getContext("2d");
 	ctx.shadowOffsetX = 1;
 	ctx.shadowOffsetY = 1;
 	ctx.shadowBlur = 2;
